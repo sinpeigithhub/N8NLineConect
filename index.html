@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>メンバー限定ページ</title>
+  <style>
+    :root {
+      --green: #06c755;
+      --green-dark: #05a847;
+      --green-bg: #e8f9ef;
+      --bg: #f5f5f5;
+      --card: #ffffff;
+      --text: #1a1a1a;
+      --sub: #666666;
+      --border: #e0e0e0;
+      --red: #e53e3e;
+      --red-bg: #fff5f5;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 48px 40px;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+    .logo {
+      width: 64px; height: 64px;
+      background: var(--green);
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 24px;
+    }
+    .logo svg { width: 40px; height: 40px; fill: white; }
+    h1 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { color: var(--sub); font-size: 14px; margin-bottom: 32px; line-height: 1.6; }
+
+    /* ローディング */
+    .loading { display: none; flex-direction: column; align-items: center; gap: 16px; }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--green);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* 認証済みコンテンツ */
+    .content-section { display: none; text-align: left; }
+    .welcome-badge {
+      background: var(--green-bg);
+      color: var(--green-dark);
+      font-size: 13px; font-weight: 600;
+      padding: 6px 14px; border-radius: 20px;
+      display: inline-block; margin-bottom: 20px;
+    }
+    .content-section h1 { font-size: 22px; margin-bottom: 8px; text-align: center; }
+    .content-body {
+      margin-top: 24px; padding-top: 24px;
+      border-top: 1px solid var(--border);
+      font-size: 15px; line-height: 1.7;
+    }
+
+    /* 登録申請フォーム */
+    .register-section { display: none; text-align: left; }
+    .register-section h1 { font-size: 20px; font-weight: 700; margin-bottom: 8px; text-align: center; }
+    .register-section .subtitle { margin-bottom: 24px; }
+    .line-name-display {
+      background: var(--green-bg);
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    .line-name-display span {
+      font-weight: 700;
+      color: var(--green-dark);
+      font-size: 16px;
+      display: block;
+      margin-top: 2px;
+    }
+    .form-group { margin-bottom: 16px; text-align: left; }
+    .form-group label {
+      display: block;
+      font-size: 13px; font-weight: 700;
+      margin-bottom: 6px; color: var(--text);
+    }
+    .form-group input {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus { border-color: var(--green); }
+    .btn-submit {
+      width: 100%;
+      background: var(--green);
+      color: white;
+      font-size: 16px; font-weight: 700;
+      padding: 14px 24px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 8px;
+    }
+    .btn-submit:hover { background: var(--green-dark); }
+    .btn-submit:disabled { background: var(--border); color: var(--sub); cursor: not-allowed; }
+    .form-error {
+      color: var(--red);
+      font-size: 13px;
+      margin-top: 8px;
+      display: none;
+    }
+
+    /* 申請完了 */
+    .success-section { display: none; text-align: center; }
+    .success-icon { font-size: 56px; margin-bottom: 16px; }
+    .success-section h1 { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+    .success-section p { color: var(--sub); font-size: 14px; line-height: 1.7; }
+
+    /* エラー */
+    .error-section { display: none; text-align: center; }
+    .error-icon { font-size: 48px; margin-bottom: 16px; }
+    .error-msg { color: var(--red); font-size: 15px; margin-bottom: 24px; }
+    .btn-retry {
+      background: none;
+      border: 2px solid var(--green);
+      color: var(--green);
+      font-size: 15px; font-weight: 600;
+      padding: 10px 24px; border-radius: 8px;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-retry:hover { background: var(--green); color: white; }
+
+    @media (max-width: 480px) {
+      .card { padding: 32px 20px; }
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+
+  <!-- ① ローディング（認証処理中） -->
+  <div class="loading" id="loading-section">
+    <div class="spinner"></div>
+    <p style="color:var(--sub);font-size:14px;">認証確認中...</p>
+  </div>
+
+  <!-- ② 認証済みコンテンツ -->
+  <div class="content-section" id="content-section">
+    <div style="text-align:center">
+      <span class="welcome-badge">✓ 認証済みメンバー</span>
+      <h1 id="welcome-heading">ようこそ！</h1>
+    </div>
+    <div class="content-body" id="restricted-content">
+      <!-- ========================================
+           ここに限定コンテンツを書いてください
+           ======================================== -->
+      <p>🎉 メンバー限定コンテンツへようこそ！</p>
+      <p style="margin-top:12px">ここに限定情報・リンク・資料などを追加できます。</p>
+      <!-- ======================================== -->
+    </div>
+  </div>
+
+  <!-- ③ 登録申請フォーム（未登録ユーザー） -->
+  <div class="register-section" id="register-section">
+    <div class="logo">
+      <svg viewBox="0 0 24 24"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+    </div>
+    <h1>メンバー登録申請</h1>
+    <p class="subtitle">現在このページへのアクセス権がありません。<br>登録申請を送ると管理者が確認します。</p>
+
+    <div class="line-name-display">
+      LINEアカウント
+      <span id="line-display-name">—</span>
+    </div>
+
+    <form id="register-form">
+      <div class="form-group">
+        <label for="real-name">本名 <span style="color:var(--red)">*</span></label>
+        <input type="text" id="real-name" placeholder="例：山田 太郎" autocomplete="name" required>
+      </div>
+      <p id="form-error" class="form-error">本名を入力してください。</p>
+      <button type="submit" class="btn-submit" id="submit-btn">登録申請を送る</button>
+    </form>
+  </div>
+
+  <!-- ④ 申請完了 -->
+  <div class="success-section" id="success-section">
+    <div class="success-icon">✅</div>
+    <h1>申請が完了しました</h1>
+    <p>登録申請を受け付けました。<br>管理者が確認後、アクセス権を付与します。<br>しばらくお待ちください。</p>
+  </div>
+
+  <!-- ⑤ エラー -->
+  <div class="error-section" id="error-section">
+    <div class="error-icon">⚠️</div>
+    <h1 style="margin-bottom:12px">エラーが発生しました</h1>
+    <p class="error-msg" id="error-msg">もう一度お試しください。</p>
+    <button class="btn-retry" onclick="location.href=location.pathname">最初からやり直す</button>
+  </div>
+
+</div>
+
+<script>
+  // ============================================================
+  // 設定項目 — デプロイ前に必ず変更してください
+  // ============================================================
+  const CONFIG = {
+    lineChannelId:    'YOUR_LINE_CHANNEL_ID',
+    n8nCallbackUrl:   'https://YOUR_N8N_URL/webhook/line-callback',
+    n8nVerifyUrl:     'https://YOUR_N8N_URL/webhook/verify-token',
+    n8nRegisterUrl:   'https://YOUR_N8N_URL/webhook/register-request',
+  };
+  // ============================================================
+
+  function show(id) {
+    const ids = ['loading-section','content-section','register-section','success-section','error-section'];
+    ids.forEach(s => {
+      const el = document.getElementById(s);
+      el.style.display = s === id ? (s === 'loading-section' ? 'flex' : 'block') : 'none';
+    });
+  }
+
+  // LINEログインURL
+  const state = Math.random().toString(36).substring(2, 15);
+  const lineLoginUrl =
+    `https://access.line.me/oauth2/v2.1/authorize` +
+    `?response_type=code` +
+    `&client_id=${CONFIG.lineChannelId}` +
+    `&redirect_uri=${encodeURIComponent(CONFIG.n8nCallbackUrl)}` +
+    `&state=${state}` +
+    `&scope=profile`;
+
+  const params   = new URLSearchParams(window.location.search);
+  const token    = params.get('token');
+  const name     = params.get('name');
+  const lineId   = params.get('lineId');
+  const lineName = params.get('lineName');
+  const status   = params.get('status');
+
+  async function init() {
+    // 未登録ユーザーの申請フォーム表示
+    if (status === 'unregistered') {
+      history.replaceState({}, '', location.pathname);
+      document.getElementById('line-display-name').textContent =
+        lineName ? decodeURIComponent(lineName) : '（不明）';
+      show('register-section');
+      // LINE IDをhiddenで保持
+      document.getElementById('register-form').dataset.lineId   = lineId   || '';
+      document.getElementById('register-form').dataset.lineName = lineName ? decodeURIComponent(lineName) : '';
+      return;
+    }
+
+    // 認証済みトークンの確認
+    if (token) {
+      show('loading-section');
+      try {
+        const res  = await fetch(`${CONFIG.n8nVerifyUrl}?token=${encodeURIComponent(token)}`);
+        const data = await res.json();
+        if (data.valid) {
+          show('content-section');
+          const displayName = name ? decodeURIComponent(name) : 'メンバー';
+          document.getElementById('welcome-heading').textContent = `ようこそ、${displayName}さん！`;
+          history.replaceState({}, '', location.pathname);
+        } else {
+          showError('アクセス権限がありません。');
+        }
+      } catch (e) {
+        showError('接続エラーが発生しました。');
+      }
+      return;
+    }
+
+    // トークンなし → LINE認証へ自動リダイレクト
+    show('loading-section');
+    location.href = lineLoginUrl;
+  }
+
+  function showError(msg) {
+    document.getElementById('error-msg').textContent = msg;
+    show('error-section');
+  }
+
+  // 登録申請フォーム送信
+  document.getElementById('register-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const realName = document.getElementById('real-name').value.trim();
+    const errEl    = document.getElementById('form-error');
+
+    if (!realName) {
+      errEl.style.display = 'block';
+      return;
+    }
+    errEl.style.display = 'none';
+
+    const btn = document.getElementById('submit-btn');
+    btn.disabled    = true;
+    btn.textContent = '送信中...';
+
+    try {
+      const res = await fetch(CONFIG.n8nRegisterUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          lineId:   this.dataset.lineId,
+          lineName: this.dataset.lineName,
+          realName: realName,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        show('success-section');
+      } else {
+        throw new Error('server error');
+      }
+    } catch (e) {
+      btn.disabled    = false;
+      btn.textContent = '登録申請を送る';
+      errEl.textContent = '送信に失敗しました。もう一度お試しください。';
+      errEl.style.display = 'block';
+    }
+  });
+
+  init();
+</script>
+</body>
+</html>
