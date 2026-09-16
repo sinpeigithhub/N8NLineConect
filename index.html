@@ -151,8 +151,67 @@
     }
     .btn-retry:hover { background: var(--green); color: white; }
 
+    /* メニューグリッド */
+    .menu-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 8px;
+    }
+    .menu-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: var(--green-bg);
+      border: 2px solid var(--green);
+      border-radius: 16px;
+      padding: 28px 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+    }
+    .menu-btn:hover {
+      background: var(--green);
+    }
+    .menu-btn:hover .menu-label {
+      color: white;
+    }
+    .menu-btn:hover .menu-icon {
+      transform: scale(1.1);
+    }
+    .menu-icon {
+      font-size: 32px;
+      transition: transform 0.2s;
+    }
+    .menu-label {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--green-dark);
+      text-align: center;
+      line-height: 1.4;
+    }
+    .menu-btn.disabled {
+      background: #f0f0f0;
+      border-color: var(--border);
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+    .menu-btn.disabled .menu-label {
+      color: var(--sub);
+    }
+    .menu-btn.disabled:hover {
+      background: #f0f0f0;
+    }
+    .menu-btn.disabled:hover .menu-label {
+      color: var(--sub);
+    }
+
     @media (max-width: 480px) {
       .card { padding: 32px 20px; }
+      .menu-btn { padding: 22px 12px; }
+      .menu-icon { font-size: 28px; }
     }
   </style>
 </head>
@@ -172,12 +231,24 @@
       <h1 id="welcome-heading">ようこそ！</h1>
     </div>
     <div class="content-body" id="restricted-content">
-      <!-- ========================================
-           ここに限定コンテンツを書いてください
-           ======================================== -->
-      <p>🎉 メンバー限定コンテンツへようこそ！</p>
-      <p style="margin-top:12px">ここに限定情報・リンク・資料などを追加できます。</p>
-      <!-- ======================================== -->
+      <div class="menu-grid">
+        <button class="menu-btn" onclick="location.href='#送迎表'">
+          <span class="menu-icon">🚌</span>
+          <span class="menu-label">送迎表</span>
+        </button>
+        <button class="menu-btn" onclick="location.href='#欠席'">
+          <span class="menu-icon">📋</span>
+          <span class="menu-label">欠席・臨時・振替</span>
+        </button>
+        <button class="menu-btn disabled" disabled>
+          <span class="menu-icon">🔒</span>
+          <span class="menu-label">準備中</span>
+        </button>
+        <button class="menu-btn disabled" disabled>
+          <span class="menu-icon">🔒</span>
+          <span class="menu-label">準備中</span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -226,10 +297,10 @@
   // 設定項目 — デプロイ前に必ず変更してください
   // ============================================================
   const CONFIG = {
-    lineChannelId:    '2011601036',
-    n8nCallbackUrl:   'https://n8n-izanaiset.xvps.jp/webhook/line-callback',
-    n8nVerifyUrl:     'https://n8n-izanaiset.xvps.jp/webhook/verify-token',
-    n8nRegisterUrl:   'https://n8n-izanaiset.xvps.jp/webhook/register-request',
+    lineChannelId:    'YOUR_LINE_CHANNEL_ID',
+    n8nCallbackUrl:   'https://YOUR_N8N_URL/webhook/line-callback',
+    n8nVerifyUrl:     'https://YOUR_N8N_URL/webhook/verify-token',
+    n8nRegisterUrl:   'https://YOUR_N8N_URL/webhook/register-request',
   };
   // ============================================================
 
