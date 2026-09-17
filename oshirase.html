@@ -1,433 +1,459 @@
-<title>お知らせ</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap">
-
-<style>
-  :root {
-    --bg: #f0f2f5;
-    --surface: #ffffff;
-    --surface-alt: #f8f9fa;
-    --border: #e4e6ea;
-    --text-primary: #1a1a2e;
-    --text-secondary: #6b7280;
-    --text-muted: #9ca3af;
-    --accent: #06c755;
-    --accent-soft: #e6f9ed;
-    --important: #e53e3e;
-    --important-soft: #fff5f5;
-    --cat-transport: #3b82f6;
-    --cat-transport-soft: #eff6ff;
-    --cat-event: #f59e0b;
-    --cat-event-soft: #fffbeb;
-    --cat-notice: #8b5cf6;
-    --cat-notice-soft: #f5f3ff;
-    --cat-health: #10b981;
-    --cat-health-soft: #ecfdf5;
-    --cat-general: #6b7280;
-    --cat-general-soft: #f9fafb;
-    --header-bg: #06c755;
-    --header-text: #ffffff;
-    --radius: 12px;
-    --shadow: 0 2px 8px rgba(0,0,0,0.08);
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --surface-alt: #22263a;
-      --border: #2d3148;
-      --text-primary: #f0f2f5;
-      --text-secondary: #9ca3af;
-      --text-muted: #6b7280;
-      --accent-soft: #0a2e1a;
-      --important-soft: #2d0f0f;
-      --cat-transport-soft: #0f1f3d;
-      --cat-event-soft: #2d1f00;
-      --cat-notice-soft: #1e1535;
-      --cat-health-soft: #0a2520;
-      --cat-general-soft: #1a1d27;
-      --shadow: 0 2px 8px rgba(0,0,0,0.3);
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>お知らせ</title>
+  <style>
+    :root {
+      --green: #06c755;
+      --green-dark: #05a847;
+      --green-bg: #e8f9ef;
+      --bg: #f5f5f5;
+      --card: #ffffff;
+      --text: #1a1a1a;
+      --sub: #666666;
+      --border: #e0e0e0;
+      --red: #e53e3e;
+      --red-bg: #fff5f5;
+      --cat-transport: #3b82f6;
+      --cat-transport-bg: #eff6ff;
+      --cat-event: #f59e0b;
+      --cat-event-bg: #fffbeb;
+      --cat-notice: #8b5cf6;
+      --cat-notice-bg: #f5f3ff;
+      --cat-health: #10b981;
+      --cat-health-bg: #ecfdf5;
+      --cat-general: #6b7280;
+      --cat-general-bg: #f9fafb;
     }
-  }
-  :root[data-theme="dark"] {
-    --bg: #0f1117;
-    --surface: #1a1d27;
-    --surface-alt: #22263a;
-    --border: #2d3148;
-    --text-primary: #f0f2f5;
-    --text-secondary: #9ca3af;
-    --text-muted: #6b7280;
-    --accent-soft: #0a2e1a;
-    --important-soft: #2d0f0f;
-    --cat-transport-soft: #0f1f3d;
-    --cat-event-soft: #2d1f00;
-    --cat-notice-soft: #1e1535;
-    --cat-health-soft: #0a2520;
-    --cat-general-soft: #1a1d27;
-    --shadow: 0 2px 8px rgba(0,0,0,0.3);
-  }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    /* ヘッダー */
+    .header {
+      background: var(--green);
+      color: white;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(6,199,85,0.3);
+    }
+    .header-inner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+    .back-btn {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      border-radius: 8px;
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .back-btn:hover { background: rgba(255,255,255,0.3); }
+    .header-title { font-size: 18px; font-weight: 700; }
+    .header-badge {
+      margin-left: auto;
+      background: var(--red);
+      color: white;
+      border-radius: 99px;
+      padding: 2px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      display: none;
+    }
 
-  body {
-    font-family: 'Noto Sans JP', sans-serif;
-    background: var(--bg);
-    color: var(--text-primary);
-    min-height: 100vh;
-  }
+    /* フィルタータブ */
+    .filter-wrap {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 64px;
+      z-index: 90;
+    }
+    .filter-scroll {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 10px 16px;
+      max-width: 640px;
+      margin: 0 auto;
+      scrollbar-width: none;
+    }
+    .filter-scroll::-webkit-scrollbar { display: none; }
+    .filter-chip {
+      flex-shrink: 0;
+      border: 1.5px solid var(--border);
+      border-radius: 99px;
+      padding: 5px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      background: var(--card);
+      color: var(--sub);
+      white-space: nowrap;
+    }
+    .filter-chip.active {
+      background: var(--green);
+      border-color: var(--green);
+      color: white;
+    }
 
-  /* Header */
-  .header {
-    background: var(--header-bg);
-    color: var(--header-text);
-    position: sticky;
-    top: env(safe-area-inset-top, 0px);
-    z-index: 100;
-    box-shadow: 0 2px 8px rgba(6,199,85,0.3);
-  }
-  .header-inner {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 16px;
-    max-width: 640px;
-    margin: 0 auto;
-  }
-  .back-btn {
-    background: rgba(255,255,255,0.2);
-    border: none;
-    color: white;
-    border-radius: 8px;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 18px;
-    flex-shrink: 0;
-    transition: background 0.15s;
-  }
-  .back-btn:hover { background: rgba(255,255,255,0.3); }
-  .header-title {
-    font-size: 18px;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-  }
-  .header-badge {
-    margin-left: auto;
-    background: #e53e3e;
-    color: white;
-    border-radius: 99px;
-    padding: 2px 8px;
-    font-size: 12px;
-    font-weight: 700;
-  }
+    /* メインコンテンツ */
+    .main {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 12px 16px 40px;
+    }
 
-  /* Filter tabs */
-  .filter-wrap {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    position: sticky;
-    top: calc(env(safe-area-inset-top, 0px) + 64px);
-    z-index: 90;
-  }
-  .filter-scroll {
-    display: flex;
-    gap: 6px;
-    overflow-x: auto;
-    padding: 10px 16px;
-    max-width: 640px;
-    margin: 0 auto;
-    scrollbar-width: none;
-  }
-  .filter-scroll::-webkit-scrollbar { display: none; }
-  .filter-chip {
-    flex-shrink: 0;
-    border: 1.5px solid var(--border);
-    border-radius: 99px;
-    padding: 5px 14px;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    background: var(--surface);
-    color: var(--text-secondary);
-    transition: all 0.15s;
-    white-space: nowrap;
-  }
-  .filter-chip.active {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: white;
-  }
+    /* ローディング */
+    .loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 64px 16px;
+      gap: 12px;
+      color: var(--sub);
+      font-size: 14px;
+    }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--green);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* List */
-  .list {
-    max-width: 640px;
-    margin: 0 auto;
-    padding: 12px 16px 32px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
+    /* エラー */
+    .error-box {
+      display: none;
+      background: var(--red-bg);
+      border: 1px solid var(--red);
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      margin: 24px 0;
+    }
+    .error-box p { color: var(--red); font-size: 14px; line-height: 1.6; }
+    .retry-btn {
+      margin-top: 12px;
+      background: var(--red);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
 
-  /* Card */
-  .card {
-    background: var(--surface);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-    border: 1px solid var(--border);
-    transition: box-shadow 0.15s, transform 0.15s;
-    cursor: pointer;
-  }
-  .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.12); transform: translateY(-1px); }
-  .card.important { border-left: 4px solid var(--important); }
+    /* 空状態 */
+    .empty {
+      display: none;
+      text-align: center;
+      padding: 64px 16px;
+      color: var(--sub);
+    }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-text { font-size: 14px; }
 
-  .card-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 14px 8px;
-    flex-wrap: wrap;
-  }
-  .cat-badge {
-    border-radius: 6px;
-    padding: 3px 9px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.03em;
-  }
-  .cat-transport { background: var(--cat-transport-soft); color: var(--cat-transport); }
-  .cat-event     { background: var(--cat-event-soft);     color: var(--cat-event); }
-  .cat-notice    { background: var(--cat-notice-soft);    color: var(--cat-notice); }
-  .cat-health    { background: var(--cat-health-soft);    color: var(--cat-health); }
-  .cat-general   { background: var(--cat-general-soft);   color: var(--cat-general); }
+    /* カードリスト */
+    .list { display: flex; flex-direction: column; gap: 10px; }
 
-  .important-badge {
-    background: var(--important-soft);
-    color: var(--important);
-    border-radius: 6px;
-    padding: 3px 9px;
-    font-size: 11px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 3px;
-  }
-  .date-text {
-    margin-left: auto;
-    font-size: 12px;
-    color: var(--text-muted);
-    white-space: nowrap;
-  }
+    /* カード */
+    .notice-card {
+      background: var(--card);
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      cursor: pointer;
+      transition: box-shadow 0.15s, transform 0.15s;
+    }
+    .notice-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.12); transform: translateY(-1px); }
+    .notice-card.important { border-left: 4px solid var(--red); }
 
-  .card-body { padding: 0 14px 14px; }
-  .card-title {
-    font-size: 15px;
-    font-weight: 700;
-    line-height: 1.4;
-    margin-bottom: 6px;
-    color: var(--text-primary);
-    text-wrap: balance;
-  }
-  .card-desc {
-    font-size: 13px;
-    color: var(--text-secondary);
-    line-height: 1.6;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 12px 14px 8px;
+      flex-wrap: wrap;
+    }
+    .cat-badge {
+      border-radius: 6px;
+      padding: 3px 9px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .cat-送迎  { background: var(--cat-transport-bg); color: var(--cat-transport); }
+    .cat-行事  { background: var(--cat-event-bg);     color: var(--cat-event); }
+    .cat-連絡  { background: var(--cat-notice-bg);    color: var(--cat-notice); }
+    .cat-健康  { background: var(--cat-health-bg);    color: var(--cat-health); }
+    .cat-その他 { background: var(--cat-general-bg);  color: var(--cat-general); }
 
-  /* Expanded state */
-  .card.expanded .card-desc {
-    -webkit-line-clamp: unset;
-    display: block;
-  }
-  .read-more {
-    margin-top: 8px;
-    font-size: 12px;
-    color: var(--accent);
-    font-weight: 600;
-    text-align: right;
-  }
-  .card.expanded .read-more { display: none; }
+    .important-badge {
+      background: var(--red-bg);
+      color: var(--red);
+      border-radius: 6px;
+      padding: 3px 9px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .date-label {
+      margin-left: auto;
+      font-size: 12px;
+      color: var(--sub);
+      white-space: nowrap;
+    }
 
-  /* Empty state */
-  .empty {
-    text-align: center;
-    padding: 64px 16px;
-    color: var(--text-muted);
-  }
-  .empty-icon { font-size: 48px; margin-bottom: 12px; }
-  .empty-text { font-size: 14px; }
+    .card-body { padding: 0 14px 14px; }
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.4;
+      margin-bottom: 6px;
+    }
+    .card-desc {
+      font-size: 13px;
+      color: var(--sub);
+      line-height: 1.7;
+      white-space: pre-wrap;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .notice-card.expanded .card-desc {
+      -webkit-line-clamp: unset;
+      display: block;
+    }
+    .read-more {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--green);
+      font-weight: 600;
+      text-align: right;
+    }
+    .notice-card.expanded .read-more { display: none; }
 
-  /* Loading */
-  .loading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 64px 16px;
-    gap: 12px;
-    color: var(--text-muted);
-    font-size: 14px;
-  }
-  .spinner {
-    width: 32px;
-    height: 32px;
-    border: 3px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width: 480px) {
+      .card-title { font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
 
-  /* Preview label */
-  .preview-banner {
-    background: #fef3c7;
-    border: 1px solid #f59e0b;
-    border-radius: 8px;
-    padding: 10px 14px;
-    font-size: 12px;
-    color: #92400e;
-    text-align: center;
-    max-width: 640px;
-    margin: 12px auto 0;
-  }
-</style>
-
-<!-- Header -->
+<!-- ヘッダー -->
 <div class="header">
   <div class="header-inner">
-    <button class="back-btn" onclick="history.back()">←</button>
+    <button class="back-btn" onclick="location.href='index.html'">←</button>
     <span class="header-title">📢 お知らせ</span>
-    <span class="header-badge">3件</span>
+    <span class="header-badge" id="count-badge"></span>
   </div>
 </div>
 
-<!-- Filter tabs -->
+<!-- フィルタータブ -->
 <div class="filter-wrap">
   <div class="filter-scroll">
-    <button class="filter-chip active" onclick="setFilter('all',this)">すべて</button>
-    <button class="filter-chip" onclick="setFilter('重要',this)">🔴 重要</button>
-    <button class="filter-chip" onclick="setFilter('送迎',this)">🚌 送迎</button>
-    <button class="filter-chip" onclick="setFilter('行事',this)">🎉 行事</button>
-    <button class="filter-chip" onclick="setFilter('連絡',this)">📋 連絡</button>
-    <button class="filter-chip" onclick="setFilter('健康',this)">💊 健康</button>
+    <button class="filter-chip active" onclick="setFilter('all', this)">すべて</button>
+    <button class="filter-chip" onclick="setFilter('重要', this)">🔴 重要</button>
+    <button class="filter-chip" onclick="setFilter('送迎', this)">🚌 送迎</button>
+    <button class="filter-chip" onclick="setFilter('行事', this)">🎉 行事</button>
+    <button class="filter-chip" onclick="setFilter('連絡', this)">📋 連絡</button>
+    <button class="filter-chip" onclick="setFilter('健康', this)">💊 健康</button>
+    <button class="filter-chip" onclick="setFilter('その他', this)">📌 その他</button>
   </div>
 </div>
 
-<!-- Preview banner -->
-<div class="preview-banner" id="previewBanner">
-  ⚠️ これはプレビューです。実際のデータはn8nから動的に取得されます。
+<!-- メイン -->
+<div class="main">
+  <!-- ローディング -->
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <span>お知らせを読み込み中...</span>
+  </div>
+
+  <!-- エラー -->
+  <div class="error-box" id="error-box">
+    <p id="error-msg">データの取得に失敗しました。</p>
+    <button class="retry-btn" onclick="fetchNotices()">再試行</button>
+  </div>
+
+  <!-- 空 -->
+  <div class="empty" id="empty">
+    <div class="empty-icon">📭</div>
+    <div class="empty-text">該当するお知らせはありません</div>
+  </div>
+
+  <!-- リスト -->
+  <div class="list" id="list"></div>
 </div>
 
-<!-- List -->
-<div class="list" id="list"></div>
-
 <script>
-  // Sample data — in production this would come from n8n GET webhook
-  const SAMPLE = [
-    {
-      id: 1,
-      date: '2026-09-17',
-      category: '送迎',
-      important: true,
-      title: '9月19日（金）送迎ルート変更のお知らせ',
-      body: '工事のため、通常の送迎ルートを一部変更します。\n\n・Aルート（北エリア）：通常通り\n・Bルート（南エリア）：国道経由に変更。到着が10〜15分ほど遅くなる見込みです。\n\nご不便をおかけしますが、ご理解のほどよろしくお願いいたします。不明な点はスタッフまでお知らせください。',
-    },
-    {
-      id: 2,
-      date: '2026-09-15',
-      category: '行事',
-      important: false,
-      title: '秋の芸術祭 作品展示のご案内',
-      body: '10月10日（土）〜12日（月）の3日間、施設内にて「秋の芸術祭」を開催します。ご利用者様の作品展示や、軽食コーナーも予定しています。ぜひご家族の皆様もお越しください。詳細は後日お知らせします。',
-    },
-    {
-      id: 3,
-      date: '2026-09-12',
-      category: '健康',
-      important: false,
-      title: 'インフルエンザ予防接種のご案内（希望者受付中）',
-      body: '今年度のインフルエンザ予防接種の希望を受け付けています。\n\n接種予定日：10月下旬\n費用：3,500円（自費）\n申込期限：9月30日（水）\n\n希望される方はスタッフにお申し出いただくか、アプリの申請フォームからご登録ください。',
-    },
-    {
-      id: 4,
-      date: '2026-09-10',
-      category: '連絡',
-      important: false,
-      title: 'システムメンテナンスのお知らせ（9月22日深夜）',
-      body: '9月22日（火）深夜2:00〜4:00の間、サーバーメンテナンスを実施します。この時間帯はアプリをご利用いただけませんのでご了承ください。',
-    },
-  ];
+  const CONFIG = {
+    n8nVerifyUrl:  'https://n8n-izanaiset.xvps.jp/webhook/verify-token',
+    n8nNoticesUrl: 'https://n8n-izanaiset.xvps.jp/webhook/get-notices',
+  };
 
+  let allNotices = [];
   let activeFilter = 'all';
 
-  function formatDate(iso) {
-    const d = new Date(iso);
-    const m = d.getMonth() + 1;
-    const day = d.getDate();
-    const weekdays = ['日','月','火','水','木','金','土'];
-    const w = weekdays[d.getDay()];
-    return `${m}/${day}（${w}）`;
-  }
-
-  function catClass(cat) {
-    const map = { '送迎':'cat-transport','行事':'cat-event','連絡':'cat-notice','健康':'cat-health' };
-    return map[cat] || 'cat-general';
-  }
-
-  function renderList(data) {
-    const list = document.getElementById('list');
-    const filtered = activeFilter === 'all' ? data
-      : activeFilter === '重要' ? data.filter(n => n.important)
-      : data.filter(n => n.category === activeFilter);
-
-    if (filtered.length === 0) {
-      list.innerHTML = `<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">該当するお知らせはありません</div></div>`;
+  // =====================
+  // セッション確認
+  // =====================
+  async function checkSession() {
+    const token = localStorage.getItem('session_token');
+    if (!token) {
+      location.href = 'index.html';
       return;
     }
-
-    list.innerHTML = filtered.map(n => `
-      <div class="card${n.important ? ' important' : ''}" id="card-${n.id}" onclick="toggleCard(${n.id})">
-        <div class="card-header">
-          <span class="cat-badge ${catClass(n.category)}">${n.category}</span>
-          ${n.important ? '<span class="important-badge">🔴 重要</span>' : ''}
-          <span class="date-text">${formatDate(n.date)}</span>
-        </div>
-        <div class="card-body">
-          <div class="card-title">${n.title}</div>
-          <div class="card-desc">${n.body.replace(/\n/g,'<br>')}</div>
-          <div class="read-more">続きを読む ▼</div>
-        </div>
-      </div>
-    `).join('');
+    try {
+      const res = await fetch(`${CONFIG.n8nVerifyUrl}?token=${encodeURIComponent(token)}`);
+      const data = await res.json();
+      if (!data.valid) {
+        location.href = 'index.html';
+        return;
+      }
+    } catch (e) {
+      // セッション確認失敗時もデータ取得は試みる
+    }
+    fetchNotices();
   }
 
-  function toggleCard(id) {
-    const card = document.getElementById('card-' + id);
-    card.classList.toggle('expanded');
+  // =====================
+  // お知らせ取得
+  // =====================
+  async function fetchNotices() {
+    showLoading();
+    try {
+      const res = await fetch(CONFIG.n8nNoticesUrl, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      // n8nから返ってくるのが配列直接か {notices:[]} どちらにも対応
+      allNotices = Array.isArray(data) ? data : (data.notices || data.data || []);
+      renderList();
+    } catch (e) {
+      showError('お知らせの取得に失敗しました。\nしばらく待ってから再試行してください。');
+    }
   }
 
+  // =====================
+  // フィルター
+  // =====================
   function setFilter(filter, btn) {
     activeFilter = filter;
     document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
     btn.classList.add('active');
-
-    // Update badge count
-    const filtered = filter === 'all' ? SAMPLE
-      : filter === '重要' ? SAMPLE.filter(n => n.important)
-      : SAMPLE.filter(n => n.category === filter);
-    document.querySelector('.header-badge').textContent = filtered.length + '件';
-
-    renderList(SAMPLE);
+    renderList();
   }
 
-  // Simulate loading
-  const list = document.getElementById('list');
-  list.innerHTML = `<div class="loading"><div class="spinner"></div>お知らせを読み込み中…</div>`;
-  setTimeout(() => renderList(SAMPLE), 900);
+  // =====================
+  // レンダリング
+  // =====================
+  function renderList() {
+    const filtered = activeFilter === 'all'   ? allNotices
+                   : activeFilter === '重要'  ? allNotices.filter(n => n.important === true || n.important === 'TRUE' || n.important === '1')
+                   : allNotices.filter(n => n.category === activeFilter);
+
+    const badge = document.getElementById('count-badge');
+    if (allNotices.length > 0) {
+      badge.style.display = 'inline-block';
+      badge.textContent = filtered.length + '件';
+    }
+
+    hideAll();
+    const list = document.getElementById('list');
+
+    if (filtered.length === 0) {
+      document.getElementById('empty').style.display = 'block';
+      return;
+    }
+
+    list.innerHTML = filtered.map((n, i) => {
+      const isImportant = n.important === true || n.important === 'TRUE' || n.important === '1';
+      const catClass = 'cat-' + (n.category || 'その他');
+      const dateStr = formatDate(n.date || n['日付'] || '');
+      const title = n.title || n['タイトル'] || '';
+      const body  = n.body  || n['本文']    || '';
+      const cat   = n.category || n['カテゴリ'] || 'その他';
+      return `
+        <div class="notice-card${isImportant ? ' important' : ''}" id="card-${i}" onclick="toggleCard(${i})">
+          <div class="card-header">
+            <span class="cat-badge ${catClass}">${cat}</span>
+            ${isImportant ? '<span class="important-badge">🔴 重要</span>' : ''}
+            <span class="date-label">${dateStr}</span>
+          </div>
+          <div class="card-body">
+            <div class="card-title">${escHtml(title)}</div>
+            <div class="card-desc">${escHtml(body)}</div>
+            <div class="read-more">続きを読む ▼</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function toggleCard(i) {
+    document.getElementById('card-' + i).classList.toggle('expanded');
+  }
+
+  // =====================
+  // ユーティリティ
+  // =====================
+  function formatDate(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d)) return iso;
+    const m = d.getMonth() + 1;
+    const day = d.getDate();
+    const w = ['日','月','火','水','木','金','土'][d.getDay()];
+    return `${m}/${day}（${w}）`;
+  }
+
+  function escHtml(s) {
+    return String(s)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
+  }
+
+  function showLoading() {
+    hideAll();
+    document.getElementById('loading').style.display = 'flex';
+  }
+  function showError(msg) {
+    hideAll();
+    document.getElementById('error-msg').textContent = msg;
+    document.getElementById('error-box').style.display = 'block';
+  }
+  function hideAll() {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error-box').style.display = 'none';
+    document.getElementById('empty').style.display = 'none';
+    document.getElementById('list').innerHTML = '';
+  }
+
+  // 起動
+  checkSession();
 </script>
+</body>
+</html>
