@@ -446,13 +446,9 @@ async function init() {
     return;
   }
 
-  // セッション検証
+  // セッション検証（GETで送信 — n8n側がquery.tokenで受け取る）
   try {
-    const res = await fetch(CONFIG.n8nVerifyUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token })
-    });
+    const res = await fetch(`${CONFIG.n8nVerifyUrl}?token=${encodeURIComponent(token)}`);
     const data = await res.json();
     if (!data.valid) {
       localStorage.removeItem('session_token');
