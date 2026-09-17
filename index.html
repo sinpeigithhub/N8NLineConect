@@ -349,12 +349,16 @@
         const res  = await fetch(`${CONFIG.n8nVerifyUrl}?token=${encodeURIComponent(token)}`);
         const data = await res.json();
         if (data.valid) {
+          // 名前を取得（name → lineName → 'メンバー' の順でフォールバック）
+          const rawName = name && name !== 'undefined' ? name
+                        : lineName && lineName !== 'undefined' ? lineName
+                        : null;
+          const displayName = rawName ? decodeURIComponent(rawName) : 'メンバー';
           // セッション情報をlocalStorageに保存（他のページで使用）
           localStorage.setItem('session_token', token);
-          localStorage.setItem('line_id', lineId || '');
-          localStorage.setItem('line_name', name ? decodeURIComponent(name) : '');
+          localStorage.setItem('line_id', lineId || data.lineId || '');
+          localStorage.setItem('line_name', displayName);
           show('content-section');
-          const displayName = name ? decodeURIComponent(name) : 'メンバー';
           document.getElementById('welcome-heading').textContent = `ようこそ、${displayName}さん！`;
           history.replaceState({}, '', location.pathname);
         } else {
