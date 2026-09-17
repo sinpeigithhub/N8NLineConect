@@ -528,11 +528,34 @@ function selectType(type, btn) {
   validateForm();
 }
 
-// 翌日以降の日付文字列を返す
+// 今日の日付文字列を返す（ローカル時刻）
+function getToday() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+// 翌日以降の日付文字列を返す（ローカル時刻で計算）
 function getTomorrow() {
   const d = new Date();
   d.setDate(d.getDate() + 1);
-  return d.toISOString().split('T')[0];
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+// 日付入力の検証（過去日・当日を無効化）
+function validateDateInput(input) {
+  if (!input.value) return;
+  if (input.value <= getToday()) {
+    input.value = '';
+    input.style.borderColor = 'var(--red)';
+    setTimeout(() => { input.style.borderColor = ''; }, 1500);
+  }
+  validateForm();
 }
 
 // ========== 日付行（欠席・臨時） ==========
@@ -544,7 +567,7 @@ function addDateRow() {
   row.className = 'date-row';
   row.id = id;
   row.innerHTML = `
-    <input type="date" id="date-${dateRowCount}" min="${min}" onchange="validateForm()" />
+    <input type="date" id="date-${dateRowCount}" min="${min}" onchange="validateDateInput(this)" />
     <button class="btn-remove-date" onclick="removeDateRow('${id}')" title="削除">×</button>
   `;
   document.getElementById('date-list').appendChild(row);
@@ -569,9 +592,9 @@ function addTransferPair() {
   pair.id = id;
   pair.innerHTML = `
     <div class="pair-label">欠席日</div>
-    <input type="date" id="off-${transferPairCount}" min="${min}" onchange="validateForm()" />
+    <input type="date" id="off-${transferPairCount}" min="${min}" onchange="validateDateInput(this)" />
     <div class="pair-label" style="margin-top:4px;">↓ 振替先</div>
-    <input type="date" id="transfer-${transferPairCount}" min="${min}" onchange="validateForm()" />
+    <input type="date" id="transfer-${transferPairCount}" min="${min}" onchange="validateDateInput(this)" />
     <button class="btn-remove-date" onclick="removeTransferPair('${id}')" title="削除">×</button>
   `;
   document.getElementById('transfer-list').appendChild(pair);
