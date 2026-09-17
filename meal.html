@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>摂食状況 記録</title>
+  <style>
+    :root {
+      --green: #06c755;
+      --green-dark: #05a847;
+      --green-bg: #e8f9ef;
+      --bg: #f5f5f5;
+      --card: #ffffff;
+      --text: #1a1a1a;
+      --sub: #666666;
+      --border: #e0e0e0;
+      --red: #e53e3e;
+      --red-bg: #fff5f5;
+      --orange: #ed8936;
+      --orange-bg: #fffaf0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 16px;
+      padding-bottom: 40px;
+    }
+    .card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 36px 28px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      margin-top: 16px;
+    }
+
+    /* ローディング */
+    .loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding: 40px 0;
+    }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--green);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ヘッダー */
+    .page-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .page-header .icon { font-size: 28px; line-height: 1; }
+    .page-header h1 { font-size: 20px; font-weight: 700; }
+    .page-header .sub { font-size: 12px; color: var(--sub); margin-top: 2px; }
+
+    /* ユーザー情報 */
+    .user-badge {
+      background: var(--green-bg);
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      color: var(--sub);
+    }
+    .user-badge strong {
+      color: var(--green-dark);
+      font-size: 15px;
+    }
+
+    hr.divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 20px 0;
+    }
+
+    /* セクションラベル */
+    .section-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--sub);
+      letter-spacing: 0.05em;
+      margin-bottom: 10px;
+    }
+
+    /* フォームグループ */
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .form-group label .required {
+      color: var(--red);
+      margin-left: 4px;
+    }
+    .form-group label .optional {
+      color: var(--sub);
+      font-weight: 400;
+      font-size: 12px;
+      margin-left: 4px;
+    }
+    .form-group select,
+    .form-group textarea,
+    .form-group input[type="number"] {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+      background: white;
+    }
+    .form-group select:focus,
+    .form-group textarea:focus,
+    .form-group input[type="number"]:focus { border-color: var(--green); }
+    .form-group textarea {
+      resize: none;
+      min-height: 80px;
+      line-height: 1.6;
+    }
+
+    /* 摂取量ボタングループ */
+    .intake-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+    .intake-btn {
+      padding: 10px 4px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: white;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--sub);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+      text-align: center;
+    }
+    .intake-btn.active {
+      border-color: var(--green);
+      background: var(--green-bg);
+      color: var(--green-dark);
+    }
+
+    /* 摂食状況ボタングループ */
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+    }
+    .status-btn {
+      padding: 10px 8px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: white;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--sub);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+      text-align: center;
+    }
+    .status-btn.active {
+      border-color: var(--green);
+      background: var(--green-bg);
+      color: var(--green-dark);
+    }
+
+    /* 体重・身長横並び */
+    .body-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .body-hint {
+      font-size: 11px;
+      color: var(--sub);
+      margin-top: 4px;
+      line-height: 1.5;
+    }
+
+    /* 送信ボタン */
+    .btn-submit {
+      width: 100%;
+      background: var(--green);
+      color: white;
+      font-size: 16px; font-weight: 700;
+      padding: 14px 24px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 24px;
+      font-family: inherit;
+    }
+    .btn-submit:hover { background: var(--green-dark); }
+    .btn-submit:disabled { background: var(--border); color: var(--sub); cursor: not-allowed; }
+
+    .form-error {
+      color: var(--red);
+      font-size: 13px;
+      margin-top: 10px;
+      display: none;
+      background: var(--red-bg);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+
+    /* 成功画面 */
+    .success-section {
+      display: none;
+      text-align: center;
+      padding: 24px 0;
+    }
+    .success-icon { font-size: 56px; margin-bottom: 16px; }
+    .success-section h1 { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+    .success-section p { color: var(--sub); font-size: 14px; line-height: 1.8; }
+    .btn-back {
+      display: inline-block;
+      margin-top: 24px;
+      background: none;
+      border: 2px solid var(--green);
+      color: var(--green);
+      font-size: 15px; font-weight: 600;
+      padding: 10px 28px; border-radius: 8px;
+      cursor: pointer; transition: all 0.2s;
+      font-family: inherit;
+      text-decoration: none;
+    }
+    .btn-back:hover { background: var(--green); color: white; }
+
+    /* エラー画面 */
+    .error-section {
+      display: none;
+      text-align: center;
+      padding: 24px 0;
+    }
+    .error-icon { font-size: 48px; margin-bottom: 16px; }
+    .error-msg { color: var(--red); font-size: 15px; margin-bottom: 24px; line-height: 1.6; }
+  </style>
+</head>
+<body>
+<div class="card">
+
+  <!-- ローディング -->
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <div style="color:var(--sub);font-size:14px;">読み込み中...</div>
+  </div>
+
+  <!-- フォーム本体 -->
+  <div id="form-section" style="display:none;">
+    <div class="page-header">
+      <div class="icon">🍽️</div>
+      <div>
+        <h1>摂食状況 記録</h1>
+        <div class="sub">今日の食事記録を入力してください</div>
+      </div>
+    </div>
+
+    <div class="user-badge">
+      記録者：<strong id="user-name-display">読み込み中...</strong>
+    </div>
+
+    <!-- 食事の摂取量 -->
+    <div class="section-label">食事の摂取量 <span style="color:var(--red)">*</span></div>
+    <div class="intake-grid" id="intake-grid">
+      <button class="intake-btn" data-value="10割" onclick="selectIntake('10割', this)">10割</button>
+      <button class="intake-btn" data-value="8割"  onclick="selectIntake('8割',  this)">8割</button>
+      <button class="intake-btn" data-value="6割"  onclick="selectIntake('6割',  this)">6割</button>
+      <button class="intake-btn" data-value="5割"  onclick="selectIntake('5割',  this)">5割</button>
+      <button class="intake-btn" data-value="4割"  onclick="selectIntake('4割',  this)">4割</button>
+      <button class="intake-btn" data-value="2割"  onclick="selectIntake('2割',  this)">2割</button>
+      <button class="intake-btn" data-value="0"    onclick="selectIntake('0',    this)">0</button>
+    </div>
+
+    <hr class="divider">
+
+    <!-- 摂食状況 -->
+    <div class="section-label">摂食状況 <span style="color:var(--red)">*</span></div>
+    <div class="status-grid" id="status-grid">
+      <button class="status-btn" data-value="好き"           onclick="selectStatus('好き',           this)">😊 好き</button>
+      <button class="status-btn" data-value="嫌い"           onclick="selectStatus('嫌い',           this)">😞 嫌い</button>
+      <button class="status-btn" data-value="普通"           onclick="selectStatus('普通',           this)">😐 普通</button>
+      <button class="status-btn" data-value="むら食い"       onclick="selectStatus('むら食い',       this)">🍽️ むら食い</button>
+      <button class="status-btn" data-value="アレルギー反応あり" onclick="selectStatus('アレルギー反応あり', this)">⚠️ アレルギー</button>
+      <button class="status-btn" data-value="体調不良"       onclick="selectStatus('体調不良',       this)">🤒 体調不良</button>
+      <button class="status-btn" data-value="その他"         onclick="selectStatus('その他',         this)">📝 その他</button>
+    </div>
+
+    <hr class="divider">
+
+    <!-- コメント -->
+    <div class="form-group">
+      <label>コメント <span class="optional">（任意）</span></label>
+      <textarea id="comment" placeholder="好き嫌いの詳細・残した理由など"></textarea>
+    </div>
+
+    <!-- 体重・身長 -->
+    <div class="body-row">
+      <div class="form-group">
+        <label>体重 <span class="optional">（任意）</span></label>
+        <input type="number" id="weight" placeholder="kg" step="0.1" min="0">
+      </div>
+      <div class="form-group">
+        <label>身長 <span class="optional">（任意）</span></label>
+        <input type="number" id="height" placeholder="cm" step="0.1" min="0">
+      </div>
+    </div>
+    <p class="body-hint">体重・身長は年2回（3月・9月）の集計用です。未記入でも送信できます。</p>
+
+    <div class="form-error" id="form-error"></div>
+
+    <button class="btn-submit" id="btn-submit" onclick="submitForm()" disabled>
+      記録する
+    </button>
+  </div>
+
+  <!-- 成功 -->
+  <div class="success-section" id="success-section">
+    <div class="success-icon">✅</div>
+    <h1>記録が完了しました</h1>
+    <p id="success-message">食事記録を保存しました。</p>
+    <a class="btn-back" href="index.html">← メニューに戻る</a>
+  </div>
+
+  <!-- エラー -->
+  <div class="error-section" id="error-section">
+    <div class="error-icon">⚠️</div>
+    <div class="error-msg" id="error-msg">エラーが発生しました</div>
+    <button class="btn-back" onclick="location.href='index.html'">メニューに戻る</button>
+  </div>
+
+</div>
+
+<script>
+const CONFIG = {
+  n8nVerifyUrl:   'https://n8n-izanaiset.xvps.jp/webhook/verify-token',
+  n8nLookupUrl:   'https://n8n-izanaiset.xvps.jp/webhook/lookup-name',
+  n8nMealUrl:     'https://n8n-izanaiset.xvps.jp/webhook/meal-record',
+};
+
+let currentUser = { lineId: '', realName: '' };
+let selectedIntake = '';
+let selectedStatus = '';
+
+// ========== 初期化 ==========
+async function init() {
+  show('loading');
+
+  const token  = localStorage.getItem('session_token');
+  const lineId = localStorage.getItem('line_id');
+
+  if (!token) {
+    showError('セッションが見つかりません。<br>メインページからアクセスしてください。');
+    return;
+  }
+
+  // セッション検証
+  try {
+    const res  = await fetch(`${CONFIG.n8nVerifyUrl}?token=${encodeURIComponent(token)}`);
+    const data = await res.json();
+    if (!data.valid) {
+      localStorage.removeItem('session_token');
+      showError('セッションが無効です。<br>メインページからログインし直してください。');
+      return;
+    }
+    currentUser.lineId = data.lineId || lineId || '';
+  } catch (e) {
+    showError('認証サーバーに接続できませんでした。<br>しばらくしてから再試行してください。');
+    return;
+  }
+
+  // 利用者名簿から本名を取得
+  try {
+    const res  = await fetch(CONFIG.n8nLookupUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lineUserId: currentUser.lineId })
+    });
+    const data = await res.json();
+    if (data.found && data.realName) {
+      currentUser.realName = data.realName;
+      document.getElementById('user-name-display').textContent = data.realName;
+    } else {
+      // 名前が取得できなかった場合はlocalStorageのline_nameを使用
+      const fallback = localStorage.getItem('line_name') || '（取得失敗）';
+      currentUser.realName = fallback;
+      document.getElementById('user-name-display').textContent = fallback;
+    }
+  } catch (e) {
+    const fallback = localStorage.getItem('line_name') || '（取得失敗）';
+    currentUser.realName = fallback;
+    document.getElementById('user-name-display').textContent = fallback;
+  }
+
+  show('form-section');
+}
+
+// ========== 表示切り替え ==========
+function show(id) {
+  ['loading', 'form-section', 'success-section', 'error-section'].forEach(s => {
+    const el = document.getElementById(s);
+    if (el) el.style.display = (s === id) ? (s === 'loading' ? 'flex' : 'block') : 'none';
+  });
+}
+
+function showError(msg) {
+  document.getElementById('error-msg').innerHTML = msg;
+  show('error-section');
+}
+
+// ========== 選択処理 ==========
+function selectIntake(value, btn) {
+  selectedIntake = value;
+  document.querySelectorAll('.intake-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  validateForm();
+}
+
+function selectStatus(value, btn) {
+  selectedStatus = value;
+  document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  validateForm();
+}
+
+function validateForm() {
+  document.getElementById('btn-submit').disabled = !(selectedIntake && selectedStatus);
+}
+
+// ========== 送信 ==========
+async function submitForm() {
+  const btn     = document.getElementById('btn-submit');
+  const errorEl = document.getElementById('form-error');
+  errorEl.style.display = 'none';
+
+  btn.disabled    = true;
+  btn.textContent = '送信中...';
+
+  const payload = {
+    '名前':         currentUser.realName,
+    '食事の摂取量': selectedIntake,
+    '摂食状況':     selectedStatus,
+    'コメント':     document.getElementById('comment').value.trim(),
+    '体重':         document.getElementById('weight').value  || '',
+    '身長':         document.getElementById('height').value  || '',
+  };
+
+  try {
+    const res  = await fetch(CONFIG.n8nMealUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      const today = new Date();
+      const m = today.getMonth() + 1;
+      const d = today.getDate();
+      document.getElementById('success-message').textContent =
+        `${currentUser.realName}さんの ${m}月${d}日 の食事記録を保存しました。`;
+      show('success-section');
+    } else {
+      throw new Error('server error');
+    }
+  } catch (e) {
+    errorEl.textContent = '送信に失敗しました。しばらくしてから再試行してください。';
+    errorEl.style.display = 'block';
+    btn.disabled    = false;
+    btn.textContent = '記録する';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
