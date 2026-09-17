@@ -349,6 +349,10 @@
         const res  = await fetch(`${CONFIG.n8nVerifyUrl}?token=${encodeURIComponent(token)}`);
         const data = await res.json();
         if (data.valid) {
+          // セッション情報をlocalStorageに保存（他のページで使用）
+          localStorage.setItem('session_token', token);
+          localStorage.setItem('line_id', lineId || '');
+          localStorage.setItem('line_name', name ? decodeURIComponent(name) : '');
           show('content-section');
           const displayName = name ? decodeURIComponent(name) : 'メンバー';
           document.getElementById('welcome-heading').textContent = `ようこそ、${displayName}さん！`;
