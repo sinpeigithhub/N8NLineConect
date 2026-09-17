@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>欠席・臨時・振替 申請</title>
+  <style>
+    :root {
+      --green: #06c755;
+      --green-dark: #05a847;
+      --green-bg: #e8f9ef;
+      --bg: #f5f5f5;
+      --card: #ffffff;
+      --text: #1a1a1a;
+      --sub: #666666;
+      --border: #e0e0e0;
+      --red: #e53e3e;
+      --red-bg: #fff5f5;
+      --orange: #ed8936;
+      --orange-bg: #fffaf0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 16px;
+      padding-bottom: 40px;
+    }
+    .card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 36px 28px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      margin-top: 16px;
+    }
+
+    /* ローディング */
+    .loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding: 40px 0;
+    }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--green);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ヘッダー */
+    .page-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .page-header .icon {
+      font-size: 28px;
+      line-height: 1;
+    }
+    .page-header h1 {
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .page-header .sub {
+      font-size: 12px;
+      color: var(--sub);
+      margin-top: 2px;
+    }
+
+    /* ユーザー情報 */
+    .user-badge {
+      background: var(--green-bg);
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      color: var(--sub);
+    }
+    .user-badge strong {
+      color: var(--green-dark);
+      font-size: 15px;
+    }
+
+    /* セクション区切り */
+    .section-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--sub);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 10px;
+      margin-top: 24px;
+    }
+
+    /* 種別選択 */
+    .type-selector {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .type-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 14px 8px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .type-btn .type-icon { font-size: 22px; }
+    .type-btn .type-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--sub);
+      line-height: 1.3;
+      text-align: center;
+    }
+    .type-btn.active {
+      border-color: var(--green);
+      background: var(--green-bg);
+    }
+    .type-btn.active .type-name { color: var(--green-dark); }
+
+    /* 日付エリア */
+    .date-area { margin-bottom: 4px; }
+    .date-hint {
+      font-size: 12px;
+      color: var(--sub);
+      margin-bottom: 10px;
+    }
+
+    /* 日付リスト */
+    .date-list { display: flex; flex-direction: column; gap: 8px; }
+    .date-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .date-row input[type="date"] {
+      flex: 1;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .date-row input[type="date"]:focus { border-color: var(--green); }
+    .date-row .arrow {
+      color: var(--sub);
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .btn-remove-date {
+      background: none;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      color: var(--sub);
+      font-size: 18px;
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+    .btn-remove-date:hover { border-color: var(--red); color: var(--red); }
+
+    /* 振替ペアラベル */
+    .pair-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--sub);
+      margin-bottom: 4px;
+    }
+    .transfer-pair {
+      background: var(--bg);
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+    }
+    .transfer-pair .btn-remove-date {
+      position: absolute;
+      top: 8px; right: 8px;
+    }
+
+    .btn-add-date {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: 1.5px dashed var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--sub);
+      cursor: pointer;
+      transition: all 0.15s;
+      width: 100%;
+      margin-top: 8px;
+      font-family: inherit;
+    }
+    .btn-add-date:hover { border-color: var(--green); color: var(--green-dark); }
+
+    /* フォームグループ */
+    .form-group { margin-top: 4px; }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+      background: white;
+    }
+    .form-group select:focus,
+    .form-group textarea:focus { border-color: var(--green); }
+    .form-group textarea {
+      resize: none;
+      min-height: 80px;
+      line-height: 1.6;
+    }
+
+    /* 送信ボタン */
+    .btn-submit {
+      width: 100%;
+      background: var(--green);
+      color: white;
+      font-size: 16px; font-weight: 700;
+      padding: 14px 24px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 28px;
+      font-family: inherit;
+    }
+    .btn-submit:hover { background: var(--green-dark); }
+    .btn-submit:disabled { background: var(--border); color: var(--sub); cursor: not-allowed; }
+
+    .form-error {
+      color: var(--red);
+      font-size: 13px;
+      margin-top: 10px;
+      display: none;
+      background: var(--red-bg);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+
+    /* 成功画面 */
+    .success-section {
+      display: none;
+      text-align: center;
+      padding: 24px 0;
+    }
+    .success-icon { font-size: 56px; margin-bottom: 16px; }
+    .success-section h1 { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+    .success-section p { color: var(--sub); font-size: 14px; line-height: 1.8; }
+    .btn-back {
+      display: inline-block;
+      margin-top: 24px;
+      background: none;
+      border: 2px solid var(--green);
+      color: var(--green);
+      font-size: 15px; font-weight: 600;
+      padding: 10px 28px; border-radius: 8px;
+      cursor: pointer; transition: all 0.2s;
+      font-family: inherit;
+      text-decoration: none;
+    }
+    .btn-back:hover { background: var(--green); color: white; }
+
+    /* エラー画面 */
+    .error-section {
+      display: none;
+      text-align: center;
+      padding: 24px 0;
+    }
+    .error-icon { font-size: 48px; margin-bottom: 16px; }
+    .error-msg { color: var(--red); font-size: 15px; margin-bottom: 24px; line-height: 1.6; }
+
+    /* 種別によって表示切り替え */
+    .section-transfer { display: none; }
+    .section-dates { display: none; }
+
+    hr.divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+
+  <!-- ローディング -->
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <div style="color:var(--sub);font-size:14px;">読み込み中...</div>
+  </div>
+
+  <!-- フォーム本体 -->
+  <div id="form-section" style="display:none;">
+    <div class="page-header">
+      <div class="icon">📋</div>
+      <div>
+        <h1>欠席・臨時・振替</h1>
+        <div class="sub">利用変更の申請フォーム</div>
+      </div>
+    </div>
+
+    <div class="user-badge">
+      申請者：<strong id="user-name-display">読み込み中...</strong>
+    </div>
+
+    <!-- 種別 -->
+    <div class="section-label">種別を選択</div>
+    <div class="type-selector">
+      <button class="type-btn" data-type="欠席" onclick="selectType('欠席', this)">
+        <span class="type-icon">😷</span>
+        <span class="type-name">欠席</span>
+      </button>
+      <button class="type-btn" data-type="臨時" onclick="selectType('臨時', this)">
+        <span class="type-icon">📅</span>
+        <span class="type-name">臨時<br>利用</span>
+      </button>
+      <button class="type-btn" data-type="振替" onclick="selectType('振替', this)">
+        <span class="type-icon">🔄</span>
+        <span class="type-name">振替</span>
+      </button>
+    </div>
+
+    <hr class="divider">
+
+    <!-- 欠席・臨時の日付リスト -->
+    <div class="section-dates" id="section-dates">
+      <div class="section-label">対象日</div>
+      <div class="date-hint" id="date-hint">対象の日付を選んでください（複数可）</div>
+      <div class="date-list" id="date-list"></div>
+      <button class="btn-add-date" onclick="addDateRow()">＋ 日付を追加</button>
+    </div>
+
+    <!-- 振替ペア -->
+    <div class="section-transfer" id="section-transfer">
+      <div class="section-label">振替の日程</div>
+      <div class="date-hint">欠席日 → 振替先日付 の順に入力してください</div>
+      <div id="transfer-list" style="display:flex;flex-direction:column;gap:12px;"></div>
+      <button class="btn-add-date" onclick="addTransferPair()" style="margin-top:12px;">＋ 振替ペアを追加</button>
+    </div>
+
+    <!-- 理由 -->
+    <div id="section-reason" style="display:none;">
+      <hr class="divider">
+      <div class="section-label">理由</div>
+      <div class="form-group">
+        <select id="reason-select">
+          <option value="">--- 選択してください ---</option>
+          <option value="病気・体調不良">病気・体調不良</option>
+          <option value="家庭の都合">家庭の都合</option>
+          <option value="行事・イベント">行事・イベント</option>
+          <option value="その他">その他</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-top:10px;">
+        <textarea id="reason-detail" placeholder="補足があれば記入（任意）"></textarea>
+      </div>
+    </div>
+
+    <div class="form-error" id="form-error">内容を確認してください</div>
+
+    <button class="btn-submit" id="btn-submit" onclick="submitForm()" disabled>
+      申請する
+    </button>
+  </div>
+
+  <!-- 成功 -->
+  <div class="success-section" id="success-section">
+    <div class="success-icon">✅</div>
+    <h1>申請が完了しました</h1>
+    <p id="success-message">申請を受け付けました。<br>確認後、ご連絡いたします。</p>
+    <a class="btn-back" href="index.html">← メニューに戻る</a>
+  </div>
+
+  <!-- エラー -->
+  <div class="error-section" id="error-section">
+    <div class="error-icon">⚠️</div>
+    <div class="error-msg" id="error-msg">エラーが発生しました</div>
+    <button class="btn-back" onclick="location.href='index.html'">メニューに戻る</button>
+  </div>
+
+</div>
+
+<script>
+const CONFIG = {
+  n8nVerifyUrl:  'https://n8n-izanaiset.xvps.jp/webhook/verify-token',
+  n8nLookupUrl:  'https://n8n-izanaiset.xvps.jp/webhook/lookup-name',
+  n8nApplyUrl:   'https://n8n-izanaiset.xvps.jp/webhook/apply-form',
+};
+
+let currentUser = { lineId: '', userName: '', realName: '' };
+let selectedType = '';
+let dateRowCount = 0;
+let transferPairCount = 0;
+
+// ========== 初期化 ==========
+async function init() {
+  show('loading');
+
+  const token = localStorage.getItem('session_token');
+  const lineId = localStorage.getItem('line_id');
+  const lineName = localStorage.getItem('line_name');
+
+  if (!token) {
+    showError('セッションが見つかりません。<br>メインページからアクセスしてください。');
+    return;
+  }
+
+  // セッション検証
+  try {
+    const res = await fetch(CONFIG.n8nVerifyUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token })
+    });
+    const data = await res.json();
+    if (!data.valid) {
+      localStorage.removeItem('session_token');
+      showError('セッションが無効です。<br>メインページからログインし直してください。');
+      return;
+    }
+    currentUser.lineId = data.lineId || lineId || '';
+  } catch (e) {
+    showError('認証サーバーに接続できませんでした。<br>しばらくしてから再試行してください。');
+    return;
+  }
+
+  currentUser.userName = lineName || '';
+
+  // 本名を取得
+  try {
+    const res = await fetch(CONFIG.n8nLookupUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lineUserId: currentUser.lineId })
+    });
+    const data = await res.json();
+    if (data.found && data.realName) {
+      currentUser.realName = data.realName;
+      document.getElementById('user-name-display').textContent = data.realName;
+    } else {
+      document.getElementById('user-name-display').textContent = currentUser.userName || currentUser.lineId;
+    }
+  } catch (e) {
+    document.getElementById('user-name-display').textContent = currentUser.userName || '（取得失敗）';
+  }
+
+  show('form-section');
+}
+
+// ========== 表示切り替え ==========
+function show(id) {
+  ['loading', 'form-section', 'success-section', 'error-section'].forEach(s => {
+    const el = document.getElementById(s);
+    if (el) el.style.display = (s === id) ? (s === 'loading' ? 'flex' : 'block') : 'none';
+  });
+}
+
+function showError(msg) {
+  document.getElementById('error-msg').innerHTML = msg;
+  show('error-section');
+}
+
+// ========== 種別選択 ==========
+function selectType(type, btn) {
+  selectedType = type;
+
+  // ボタンのハイライト
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  // 日付エリアのリセット
+  document.getElementById('date-list').innerHTML = '';
+  document.getElementById('transfer-list').innerHTML = '';
+  dateRowCount = 0;
+  transferPairCount = 0;
+
+  if (type === '振替') {
+    document.getElementById('section-dates').style.display = 'none';
+    document.getElementById('section-transfer').style.display = 'block';
+    addTransferPair();
+  } else {
+    document.getElementById('section-transfer').style.display = 'none';
+    document.getElementById('section-dates').style.display = 'block';
+    document.getElementById('date-hint').textContent =
+      type === '欠席' ? '欠席する日付を選んでください（複数可）'
+                      : '臨時利用する日付を選んでください（複数可）';
+    addDateRow();
+  }
+
+  document.getElementById('section-reason').style.display = 'block';
+  validateForm();
+}
+
+// ========== 日付行（欠席・臨時） ==========
+function addDateRow() {
+  dateRowCount++;
+  const id = `date-row-${dateRowCount}`;
+  const row = document.createElement('div');
+  row.className = 'date-row';
+  row.id = id;
+  row.innerHTML = `
+    <input type="date" id="date-${dateRowCount}" onchange="validateForm()" />
+    <button class="btn-remove-date" onclick="removeDateRow('${id}')" title="削除">×</button>
+  `;
+  document.getElementById('date-list').appendChild(row);
+  validateForm();
+}
+
+function removeDateRow(id) {
+  const rows = document.querySelectorAll('#date-list .date-row');
+  if (rows.length <= 1) return;
+  const el = document.getElementById(id);
+  if (el) el.remove();
+  validateForm();
+}
+
+// ========== 振替ペア ==========
+function addTransferPair() {
+  transferPairCount++;
+  const id = `pair-${transferPairCount}`;
+  const pair = document.createElement('div');
+  pair.className = 'transfer-pair';
+  pair.id = id;
+  pair.innerHTML = `
+    <div class="pair-label">欠席日</div>
+    <input type="date" id="off-${transferPairCount}" onchange="validateForm()" />
+    <div class="pair-label" style="margin-top:4px;">↓ 振替先</div>
+    <input type="date" id="transfer-${transferPairCount}" onchange="validateForm()" />
+    <button class="btn-remove-date" onclick="removeTransferPair('${id}')" title="削除">×</button>
+  `;
+  document.getElementById('transfer-list').appendChild(pair);
+  validateForm();
+}
+
+function removeTransferPair(id) {
+  const pairs = document.querySelectorAll('#transfer-list .transfer-pair');
+  if (pairs.length <= 1) return;
+  const el = document.getElementById(id);
+  if (el) el.remove();
+  validateForm();
+}
+
+// ========== バリデーション ==========
+function validateForm() {
+  const errorEl = document.getElementById('form-error');
+  errorEl.style.display = 'none';
+
+  if (!selectedType) {
+    document.getElementById('btn-submit').disabled = true;
+    return;
+  }
+
+  let datesOk = false;
+
+  if (selectedType !== '振替') {
+    const dateInputs = document.querySelectorAll('#date-list input[type="date"]');
+    datesOk = Array.from(dateInputs).some(i => i.value);
+  } else {
+    const pairs = document.querySelectorAll('#transfer-list .transfer-pair');
+    datesOk = Array.from(pairs).every(pair => {
+      const n = pair.id.replace('pair-', '');
+      const off = document.getElementById(`off-${n}`);
+      const tr  = document.getElementById(`transfer-${n}`);
+      return off && tr && off.value && tr.value;
+    }) && pairs.length > 0;
+  }
+
+  const reason = document.getElementById('reason-select').value;
+  document.getElementById('btn-submit').disabled = !(datesOk && reason);
+}
+
+// 理由セレクト変更
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('reason-select').addEventListener('change', validateForm);
+  init();
+});
+
+// ========== 送信 ==========
+async function submitForm() {
+  const btn = document.getElementById('btn-submit');
+  const errorEl = document.getElementById('form-error');
+  errorEl.style.display = 'none';
+
+  btn.disabled = true;
+  btn.textContent = '送信中...';
+
+  const reason = document.getElementById('reason-select').value;
+  const reasonDetail = document.getElementById('reason-detail').value.trim();
+  const displayName = document.getElementById('user-name-display').textContent;
+
+  let payload = {
+    type: selectedType,
+    userName: displayName,
+    lineUserId: currentUser.lineId,
+    reason,
+    reasonDetail,
+  };
+
+  if (selectedType !== '振替') {
+    const dateInputs = document.querySelectorAll('#date-list input[type="date"]');
+    const targetDates = Array.from(dateInputs).map(i => i.value).filter(v => v);
+    payload.targetDates = targetDates;
+  } else {
+    const pairs = document.querySelectorAll('#transfer-list .transfer-pair');
+    const transferPairs = Array.from(pairs).map(pair => {
+      const n = pair.id.replace('pair-', '');
+      return {
+        offDate:      (document.getElementById(`off-${n}`)?.value || ''),
+        transferDate: (document.getElementById(`transfer-${n}`)?.value || ''),
+      };
+    }).filter(p => p.offDate && p.transferDate);
+    payload.transferPairs = transferPairs;
+  }
+
+  try {
+    const res = await fetch(CONFIG.n8nApplyUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+
+    if (data.result === 'success' || res.ok) {
+      // 成功メッセージを種別に応じて変える
+      let msg = '';
+      if (selectedType === '振替') {
+        const count = payload.transferPairs?.length || 0;
+        msg = `${count}件の振替申請を受け付けました。<br>確認後、ご連絡いたします。`;
+      } else {
+        const count = payload.targetDates?.length || 0;
+        msg = `${count}日分の${selectedType}申請を受け付けました。<br>確認後、ご連絡いたします。`;
+      }
+      document.getElementById('success-message').innerHTML = msg;
+      show('success-section');
+    } else {
+      throw new Error('サーバーエラー');
+    }
+  } catch (e) {
+    errorEl.textContent = '送信に失敗しました。しばらくしてから再試行してください。';
+    errorEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = '申請する';
+  }
+}
+</script>
+</body>
+</html>
