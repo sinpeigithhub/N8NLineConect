@@ -528,15 +528,23 @@ function selectType(type, btn) {
   validateForm();
 }
 
+// 翌日以降の日付文字列を返す
+function getTomorrow() {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  return d.toISOString().split('T')[0];
+}
+
 // ========== 日付行（欠席・臨時） ==========
 function addDateRow() {
   dateRowCount++;
-  const id = `date-row-${dateRowCount}`;
+  const id  = `date-row-${dateRowCount}`;
+  const min = getTomorrow();
   const row = document.createElement('div');
   row.className = 'date-row';
   row.id = id;
   row.innerHTML = `
-    <input type="date" id="date-${dateRowCount}" onchange="validateForm()" />
+    <input type="date" id="date-${dateRowCount}" min="${min}" onchange="validateForm()" />
     <button class="btn-remove-date" onclick="removeDateRow('${id}')" title="削除">×</button>
   `;
   document.getElementById('date-list').appendChild(row);
@@ -554,15 +562,16 @@ function removeDateRow(id) {
 // ========== 振替ペア ==========
 function addTransferPair() {
   transferPairCount++;
-  const id = `pair-${transferPairCount}`;
+  const id  = `pair-${transferPairCount}`;
+  const min = getTomorrow();
   const pair = document.createElement('div');
   pair.className = 'transfer-pair';
   pair.id = id;
   pair.innerHTML = `
     <div class="pair-label">欠席日</div>
-    <input type="date" id="off-${transferPairCount}" onchange="validateForm()" />
+    <input type="date" id="off-${transferPairCount}" min="${min}" onchange="validateForm()" />
     <div class="pair-label" style="margin-top:4px;">↓ 振替先</div>
-    <input type="date" id="transfer-${transferPairCount}" onchange="validateForm()" />
+    <input type="date" id="transfer-${transferPairCount}" min="${min}" onchange="validateForm()" />
     <button class="btn-remove-date" onclick="removeTransferPair('${id}')" title="削除">×</button>
   `;
   document.getElementById('transfer-list').appendChild(pair);
