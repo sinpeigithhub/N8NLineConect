@@ -232,7 +232,7 @@
     </div>
     <div class="content-body" id="restricted-content">
       <div class="menu-grid">
-        <button class="menu-btn" onclick="location.href='sougei.html'">
+        <button class="menu-btn" onclick="openSougei()">
           <span class="menu-icon">🚌</span>
           <span class="menu-label">送迎表</span>
         </button>
@@ -301,6 +301,7 @@
     n8nCallbackUrl:   'https://n8n-izanaiset.xvps.jp/webhook/line-callback',
     n8nVerifyUrl:     'https://n8n-izanaiset.xvps.jp/webhook/verify-token',
     n8nRegisterUrl:   'https://n8n-izanaiset.xvps.jp/webhook/register-request',
+    n8nSettingsUrl:   'https://n8n-izanaiset.xvps.jp/webhook/get-settings',
   };
   // ============================================================
 
@@ -421,6 +422,23 @@
   });
 
   init();
+
+  // ========== 送迎表を開く ==========
+  async function openSougei() {
+    try {
+      const res  = await fetch(CONFIG.n8nSettingsUrl);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      const link = data['送迎表リンク'];
+      if (!link) {
+        alert('送迎表のリンクが設定されていません。管理者にお問い合わせください。');
+        return;
+      }
+      window.open(link, '_blank', 'noopener');
+    } catch (e) {
+      alert('送迎表の読み込みに失敗しました。しばらくしてから再試行してください。');
+    }
+  }
 </script>
 </body>
 </html>
